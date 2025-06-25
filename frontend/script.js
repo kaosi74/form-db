@@ -1,37 +1,66 @@
 const form = document.getElementById("signupForm");
-const userList = document.getElementById('userList');
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(form);
-  const user = {
-    username: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-  };
+const loginForm = document.getElementById("loginForm");
 
-  if (user) {
-    res.status(201).json(user)
-    res.redirect("")
-  }
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const user = {
+      username: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    };
 
-  await fetch("http://localhost:3000/api/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(user),
-  });
+    try {
+      const response = await fetch("http://localhost:3000/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
 
-  form.reset();
-  loadUsers();
-});
+      if (!response.ok) {
+        throw new Error("Signup failed");
+      }
 
-async function loadUsers() {
-  const res = await fetch("http://localhost:3000/api/users");
-  const users = await res.json();
-  userList.innerHTML = users
-    .map((u) => `<li>${u.username} (${u.email})</li>`)
-    .join("");
+      console.log("User created successfully!");
+      form.reset();
+      window.location.href = "./login.html";
+    } catch (error) {
+      console.error("Error during signup:", error.message);
+    }
+  })
 }
 
-loadUsers(); // Load users when the page loads
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(loginForm);
+
+    if (!formData.get("email") || !formData.get("password")) {
+      console.error("Email and password are required");
+      return;
+    }
+    const user = {
+      email: formData.get("email"),
+      password: formData.get("password"),
+    };
+    try {
+      const response = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
+
+      if (!response.ok) {
+        throw new Error("Invalid credentials");
+      }
+      window.location.href = "./dashboard.html";
+    } catch (error) {
+      console.error("Login failed:", error.message);
+    }
+  });
+}

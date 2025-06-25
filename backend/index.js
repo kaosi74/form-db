@@ -11,13 +11,14 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve static files (like index.html) from the "frontend" folder
-app.use(express.static(path.join(__dirname, "../frontend")));
-app.use(cors({
-  origin: ['http://localhost:5500'],
-  
-
-}))
+app.use(express.static(path.join(__dirname, "frontend")));
+app.use(
+  cors({
+    origin: ["http://localhost:5500", "http://127.0.0.1:5500"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 // middleware
 const uri = process.env.MONGODB_URI;
@@ -31,6 +32,17 @@ app.use(express.urlencoded({ extended: false }));
 app.get("/", (req, res) => {
   res.send("I'm working");
 });
+
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user || user.password !== password) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+  res.status(200).json({ message: "Login successful", user });
+});
+
 
 app.get("/api/users", async (req, res) => {
   try {
